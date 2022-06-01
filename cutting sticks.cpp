@@ -1,78 +1,107 @@
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 using namespace std;
-#define INF INT_MAX
-bool shouldCut[10001];
-int memo[1001][1001];
 
-int optimalCut(int indexStart,int indexEnd)
+vector <int> graph[250];
+int color[250];
+
+int dfs_color_selection(int node)
 {
-    int memorizedResult = memo[indexStart][indexEnd];
-
-    if(memorizedResult != INF)
+    int visit[250] = {0},variable,i,cnt = 0,contradiction = 0;
+    stack <int> use;
+    variable = 0;
+    use.push(variable);
+    cnt++;
+    color[variable] = 1;
+    visit[variable] = 1;
+    while(1)
     {
-        return memorizedResult;
-    }
-
-    int minSubcutCost = INF;
-
-    for(int i = indexStart+1;i<indexEnd;i++)
-    {
-        if(shouldCut[i])
+        if(use.empty() == 1)
         {
-            int length =indexEnd - indexStart;
-
-            int cost = length + optimalCut(indexStart,i)+ optimalCut(i,indexEnd);
-
-            if(cost<minSubcutCost)
+            break;
+        }
+        variable = use.top();
+        if(graph[variable].size() == 0)
+        {
+            use.pop();
+            continue;
+        }
+        for(i = 0; i < graph[variable].size(); i++)
+        {
+            int got = graph[variable][i];
+            if(visit[got] == 0)
             {
-                minSubcutCost = cost;
+                visit[got] = 1;
+                use.push(got);
+                cnt++;
+                if(color[variable] == 1) {
+                    color[got] = 2;
+                }
+                else {
+                    color[got] = 1;
+                }
+
+                break;
+            }
+            if(visit[i] == 1 && i < graph[variable].size() - 1) {
+                 if(color[got] == color[variable]) {
+                    contradiction = 1;
+                    cout<<"hello"<<endl;
+                    break;
+                }
+            }
+
+
+
+            if(visit[got] == 1 && i == graph[variable].size() - 1)
+            {
+                if(color[got] == color[variable]) {
+                    contradiction = 1;
+                    break;
+                }
+                use.pop();
+
             }
         }
+        if(contradiction == 1) {
+            break;
+        }
+
     }
+    return contradiction;
 
-    if(minSubcutCost == INF)
-    {
-        minSubcutCost = 0;
-    }
-
-    memo[indexStart][indexEnd] = minSubcutCost;
-
-
-    return minSubcutCost;
 }
-int main()
+
+int main(void)
 {
-    for(;;)
+    int node,edge,i,a,b;
+    while(scanf("%d",&node) == 1)
     {
-        int stickLength;
-        cin>>stickLength;
-
-        if(stickLength==0)break;
-
-
-        for(int i=0;i<=1000;i++)
+        if(node == 0)
         {
-            shouldCut[i] =false;
-            for(int j=0;j<=1000;j++)
-            {
-                memo[i][j] = INF;
-            }
+            break;
+        }
+        scanf("%d",&edge);
+        for(i = 1; i <= edge; i++)
+        {
+            scanf("%d %d",&a,&b);
+            graph[a].push_back(b);
+            graph[b].push_back(a);
+        }
+        int found = dfs_color_selection(node);
+        if(found == 1)
+        {
+            printf("NOT BICOLORABLE.\n");
+        }
+        else
+        {
+            printf("BICOLORABLE.\n");
+        }
+        for( i = 0; i < node; i++)
+        {
+            graph[i].clear();
         }
 
-        int numberOfCuts;
-
-        int cutIndex;
-
-        cin>>numberOfCuts;
-
-        for(int cut = 0;cut<numberOfCuts;cut++)
-        {
-            cin>>cutIndex;
-            shouldCut[cutIndex] = true;
-        }
-
-        int optimalCost = optimalCut(0,stickLength);
-
-        printf("The minimum cutting is %d.\n",optimalCost);
     }
+    return 0;
+
 }
